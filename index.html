@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>"Spoting MAP"</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    #map {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background-color: #143d6b;
+    }
+    #mapSelector {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<select id="mapSelector">
+  <option value="map1">แผนที่ 1</option>
+  <option value="map2">แผนที่ 2</option>
+</select>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+
+  const imageWidth = 8192;
+  const imageHeight = 8192;
+  const imageBounds = [[0, 0], [imageHeight, imageWidth]];
+
+  const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -4,
+    maxZoom: 2
+  });
+
+  const maps = {
+    map1: L.imageOverlay('map2.png', imageBounds),
+    map2: L.imageOverlay('map1.png', imageBounds),
+  };
+
+  let currentMap = maps.map1.addTo(map);
+  map.fitBounds(imageBounds);
+
+  document.getElementById('mapSelector').addEventListener('change', (e) => {
+    map.removeLayer(currentMap);
+    currentMap = maps[e.target.value].addTo(map);
+  });
+
+  const offsetX = 6487;
+  const offsetY = 9474;
+
+  function gtaToLeaflet(gameX, gameY) {
+    const leafletX = gameX + offsetX;
+    const leafletY = -gameY + offsetY;
+    return [leafletY, leafletX];
+  }
+
+  function leafletToGTA(leafletX, leafletY) {
+    const gameX = leafletX - offsetX;
+    const gameY = -(leafletY - offsetY);
+    return [gameX, gameY];
+  }
+
+  function customIcon(iconName) {
+    return L.icon({
+      iconUrl: iconName + '.png',
+      iconSize: [18, 18],
+      iconAnchor: [8, 20],
+      popupAnchor: [-10, -24]
+
+    });
+  }
+
+  const gtaLocations = [
+    { name: "โรงพยาบาลกลาง", x: -2520, y: 7746, icon: "01" }, //Medic
+    { name: "โรงพยาบาลเก่า", x: -2523, y: 7202, icon: "01" },
+    { name: "โรงพยาบาลแซนดี้", x: -1521, y: 4383, icon: "01" },
+    { name: "โรงพยาบาลเมืองบน", x: -2893, y: 2643, icon: "01" },
+    { name: "โรงพยาบาลสนาม", x: -3111, y: 7036, icon: "01" },
+    { name: "สน.กลางเมือง", x: -2427, y: 7462, icon: "02" }, //Police
+    { name: "หอดูดาว,สำนักงานใหญ่", x: -3006, y: 6053, icon: "02" },
+    { name: "แลนด์ขาว", x: -2055, y: 7310, icon: "04" },//Land
+    { name: "แลนด์ส้ม", x: -2943, y: 7413, icon: "06" },
+    { name: "แลนด์เหลือง", x: -1948, y: 7821, icon: "05" },
+    { name: "แลนด์ม่วง", x: -3240, y: 7667, icon: "07" },
+    { name: "แลนด์ชมพู", x: -2136, y: 6851, icon: "08" },
+    { name: "แลนด์แดง", x: -3468, y: 7004, icon: "09" },
+    { name: "สะพานสน.", x: -2340, y: 7486, icon: "03" },// Location
+    { name: "รางน้ำหลังสน.", x: -2346, y: 7542, icon: "03" },
+    { name: "รางรถไฟโอลิมปิก", x: -2292, y: 7437, icon: "03" },
+    { name: "อู่เจ็ง", x: -2184, y: 7452, icon: "03" },
+    { name: "โดนัทรางรถไฟ", x: -2277, y: 7542, icon: "03" },
+    { name: "ฟรีเวย์ไต่ 24", x: -2049, y: 7496, icon: "03" },
+    { name: "อู๋รางรถไฟ", x: -2239, y: 7526, icon: "03" },
+    { name: "งัดร้านเอลรันโช่", x: -1986, y: 7460, icon: "03" },
+    { name: "โดนัทสน. 24", x: -2270, y: 7668, icon: "03" },
+    { name: "สน. 24", x: -2177, y: 7666, icon: "03" },
+    { name: "ตึก 24", x: -2118, y: 7651, icon: "03" },
+    { name: "รางน้ำ 24", x: -2119, y: 7686, icon: "03" },
+    { name: "กองปูนป็อป", x: -2139, y: 7828, icon: "03" },
+    { name: "แยกป็อป", x: -2205, y: 7758, icon: "03" },
+    { name: "สะพานหลังโรงบาล", x: -2307, y: 7755, icon: "03" },
+    { name: "ซอยบ้านพี่คม(สัน)", x: -2441, y: 7802, icon: "03" },
+    { name: "3 แยกชิงธงเก่า", x: -2271, y: 7875, icon: "03" },
+    { name: "สะพานพาวร์หน่วยงาน", x: -2287, y: 7954.5, icon: "03" },
+    { name: "แยกป็อป(พาวร์หน่วยงาน)", x: -2184, y: 7965, icon: "03" },
+    { name: "สะพานแฝดหลอมเก่า", x: -2005, y: 7953, icon: "03" },
+    { name: "ฟรีเวย์หลอมเก่า", x: -1991.5, y: 7987.75, icon: "03" },
+    { name: "สะพานแฝดหลอมเก่า", x: -1977, y: 8027, icon: "03" },
+    { name: "หมู่บ้านหลังแลนด์ส้ม", x: -1875, y: 7949, icon: "03" },
+    { name: "สะพาน 4 แทงค์", x: -2304, y: 8161, icon: "03" },
+    { name: "แยกป็อป 4 แทงค์", x: -2219, y: 8184, icon: "03" },
+    { name: "เส้นหลังหลอมเก่า", x: -2139, y: 8177, icon: "03" },
+    { name: "ซอยหลอมเก่า", x: -2109, y: 8113, icon: "03" },
+    { name: "หลอมเก่า", x: -2025, y: 8115, icon: "03" },
+    { name: "แยกหลอม", x: -1911, y: 8157, icon: "03" },
+    { name: "หลอมบน", x: -1929, y: 8256, icon: "03" },
+    { name: "หลอมล่าง", x: -1915, y: 8414, icon: "03" },
+    { name: "ฟรีเวย์หลอมใหม่", x: -1885, y: 8449, icon: "03" },
+    { name: "เส้นดินหน้าบ้าน DW", x: -1738, y: 8424, icon: "03" },
+    { name: "เรเบลล่าง", x: -1934, y: 8882, icon: "03" },
+    { name: "คอนเทนเนอร์เรเบลล่าง", x: -2061, y: 8795, icon: "03" },
+    { name: "รางรถไฟเรเบลล่าง", x: -2102, y: 8967, icon: "03" },
+    { name: "ฟาร์มมิงโก้ เก่า", x: -2413, y: 9009, icon: "03" },
+    { name: "ทางเข้าฟาร์มมิงโก้ เก่า", x: -2286, y: 8697, icon: "03" },
+    { name: "ตึกวูดู", x: -2576, y: 8915, icon: "03" },
+    { name: "เดอะโดม", x: -2516, y: 8625, icon: "03" },
+    { name: "สะพานพระราม 9", x: -2130, y: 8523, icon: "03" },
+    { name: "แยกพระราม 8 พระราม 9", x: -2557, y: 8560, icon: "03" },
+    { name: "อู่ต่อเรือ", x: -2969, y: 8579, icon: "03" },
+    { name: "ขายปลาน้ำลึกเก่า", x: -2954, y: 8410, icon: "03" },
+    { name: "สะพานพระราม 8", x: -3003, y: 8336, icon: "03" },
+    { name: "ลานจอดใต้พระราม 8", x: -3116, y: 8225, icon: "03" },
+    { name: "แลนด์มิ้นเก่า", x: -3254, y: 8381, icon: "03" },
+    { name: "เส้นใต้ปลาหมึก", x: -3224, y: 8244, icon: "03" },
+    { name: "ตึก DOV", x: -3290, y: 8213, icon: "03" },
+    { name: "ตึก ซีโร่", x: -3394, y: 8124, icon: "03" },
+    { name: "ปั้มร้าง", x: -3003, y: 8336, icon: "03" },
+    { name: "ตึกโซร่าเซลล์", x: -3450, y: 8462, icon: "03" },
+    { name: "เหินตึกใบหยก", x: -3387, y: 8473, icon: "03" },
+    { name: "ตึกใบหยก", x: -3372, y: 8532, icon: "03" },
+    { name: "ตึกแฝดนิวเอ็ม(มีปูน)", x: -3396, y: 8510, icon: "03" },
+    { name: "ตึกแฝดนิวเอ็ม(ไม่มีปูน)", x: -3337, y: 8536, icon: "03" },
+    { name: "รันเวย์สนามบินล่าง", x: -3594, y: 8776, icon: "03" },
+    { name: "ร้านสนามบินล่าง", x: -3445, y: 8727, icon: "03" },
+    { name: "ชายหาดปั้มร้าง", x: -3418, y: 8023, icon: "03" },
+    { name: "หอเตือนภัย", x: -3516, y: 7984, icon: "03" },
+    { name: "WHAT MUSIC", x: -3393, y: 7814, icon: "03" },
+    { name: "คาเฟ่", x: -3402, y: 7721, icon: "03" },
+    { name: "ทางเข้าอีโค่", x: -3596, y: 7775, icon: "03" },
+    { name: "ร้านหน้ากาก", x: -3582, y: 7726, icon: "03" },
+    { name: "เส้นหลังร้านหน้ากาก", x: -3594, y: 7571, icon: "03" },
+    { name: "สวนสนุก", x: -3805, y: 7485, icon: "03" },
+    { name: "เส้นเบย๋หลังร้านหน้ากาก", x: -3539, y: 7555, icon: "03" },
+    { name: "ท่าเรือสวนสนุก", x: -3941, y: 7608, icon: "03" },
+    { name: "หมาร้อนสวนสนุก", x: -3817, y: 7393, icon: "03" },
+    { name: "เส้นเบย๋หน้าสวนสนุก", x: -3678, y: 7303, icon: "03" },
+    { name: "เส้นเบย๋ตึกกระจก", x: -3817, y: 7191, icon: "03" },
+    { name: "ผับแก้วไวน์", x: -3658, y: 7191, icon: "03" },
+    { name: "ตึกรุ้ง", x: -3540, y: 7232, icon: "03" },
+    { name: "ซอยโซ่", x: -3559, y: 7302, icon: "03" },
+    { name: "งัดร้านเอสแดง", x: -3515, y: 7389, icon: "03" },
+    { name: "บ้านน้ำ", x: -3415, y: 7510, icon: "03" },
+    { name: "เส้นข้างแลนด์ม่วง", x: -3299, y: 7578, icon: "03" },
+    { name: "ฟรีเวย์ตึกรุ้ง", x: -3461, y: 7224, icon: "03" },
+    { name: "โรงถ่ายหนัง", x: -3452, y: 7158, icon: "03" },
+    { name: "สะพานขายปลาน้ำตื้นเก่า", x: -3323, y: 7169, icon: "03" },
+    { name: "ซอยพลาซ่า", x: -3323, y: 7071, icon: "03" },
+    { name: "เส้นหลังจกแคป", x: -3307, y: 6991, icon: "03" },
+    { name: "จกแคปเก่า", x: -3322, y: 6933, icon: "03" },
+    { name: "ตึกทรู", x: -3434, y: 6967, icon: "03" },
+    { name: "เส้นหน้าสนามกอล์ฟ", x: -3521, y: 6878, icon: "03" },
+    { name: "แยกหน้าสนามกอล์ฟ", x: -3655, y: 6853, icon: "03" },
+    { name: "แยกสุสาน", x: -3758, y: 6928, icon: "03" },
+    { name: "สุสาน", x: -3855, y: 6966, icon: "03" },
+    { name: "ทางขึ้นเข็มทิศ", x: -3959, y: 6764, icon: "03" },
+    { name: "จกเข็มทิศ", x: -4243, y: 6564, icon: "03" },
+    { name: "เขาเข็มทิศ", x: -4422, y: 6613, icon: "03" },
+    { name: "เขาสุสาน", x: -4010, y: 6827, icon: "03" },
+    { name: "บ้านทรายทอง", x: -3910, y: 6523, icon: "03" },
+    { name: "ลานกิจกรรม", x: -3873, y: 6708, icon: "03" },
+    { name: "แลนด์น้ำตาล เก่า", x: -3596, y: 6630, icon: "03" },
+    { name: "เส้นหลังแลนด์น้ำตาล เก่า", x: -3612, y: 7232, icon: "03" },
+    { name: "ยอดเขา จกเข็มทิศ", x: -4365, y: 6307, icon: "03" },
+  ];
+
+  gtaLocations.forEach(loc => {
+    const [y, x] = gtaToLeaflet(loc.x, loc.y);
+    L.marker([y, x], { icon: customIcon(loc.icon) })
+      .addTo(map)
+      .bindPopup(`${loc.name}<br>GTA (${loc.x}, ${loc.y})`);
+  });
+
+  map.on('click', function (e) {
+    const lx = e.latlng.lng;
+    const ly = e.latlng.lat;
+    const [gx, gy] = leafletToGTA(lx, ly);
+    L.popup()
+      .setLatLng(e.latlng)
+      .setContent(`Leaflet: (${lx.toFixed(0)}, ${ly.toFixed(0)})<br>GTA: (${gx.toFixed(0)}, ${gy.toFixed(0)})`)
+      .openOn(map);
+    console.log(`CLICK: Leaflet(${lx}, ${ly}) -> GTA(${gx}, ${gy})`);
+  });
+
+</script>
+
+</body>
+</html>
